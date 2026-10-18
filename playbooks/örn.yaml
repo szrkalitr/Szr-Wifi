@@ -1,0 +1,10 @@
+adimlar:
+  - tip: scan
+    sure: 15
+  - tip: bekle
+    sure: 1
+  - tip: deauth
+    args: {bssid: "AA:BB:CC:DD:EE:FF", count: 200}
+    sure: 12
+  - tip: eapol
+    sure: 30
