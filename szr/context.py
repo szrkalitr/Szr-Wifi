@@ -2,7 +2,7 @@ import logging
 import sys
 import time
 from threading import Lock, Thread
-from typing import Dict, List, Optional
+from typing import Dict
 
 from scapy.all import sniff, conf
 
@@ -24,16 +24,12 @@ C_WARN = "\033[33m"
 C_ERR = "\033[31m"
 C_DIM = "\033[2m"
 
-
 def _color(level):
-    return {"info": C_INFO, "ok": C_OK, "warn": C_WARN,
-            "err": C_ERR, "dim": C_DIM}.get(level, "")
-
+    return {"info": C_INFO, "ok": C_OK, "warn": C_WARN, "err": C_ERR, "dim": C_DIM}.get(level, "")
 
 def set_quiet(v):
     global QUIET
     QUIET = v
-
 
 class TUI:
     def __init__(self, prompt=TOOL_PROMPT):
@@ -59,7 +55,6 @@ class TUI:
         with self.lock:
             sys.stdout.write("\r\033[K" + msg + "\n")
             sys.stdout.flush()
-
 
 class Sniffer:
     def __init__(self, iface):
@@ -87,6 +82,8 @@ class Sniffer:
         self.thread.start()
 
     def _run(self):
+        conf.use_pcap = True
+
         def cb(p):
             with self.lock:
                 subs = list(self.subs)
@@ -98,7 +95,7 @@ class Sniffer:
 
         while self.running:
             try:
-                sniff(iface=self.iface, prn=cb, store=False, timeout=1,
+                sniff(iface=self.iface, prn=cb, store=False, timeout=1, monitor=True,
                       stop_filter=lambda p: not self.running)
             except Exception as e:
                 log.debug("sniff: %s", e)
@@ -106,7 +103,6 @@ class Sniffer:
 
     def stop(self):
         self.running = False
-
 
 class Context:
     def __init__(self, iface, mitm_enabled=False, all_channels=False):
@@ -129,7 +125,6 @@ class Context:
                 except Exception:
                     pass
         self.sniffer.stop()
-
 
 class Module:
     name = "base"

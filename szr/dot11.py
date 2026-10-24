@@ -1,35 +1,27 @@
 import random
 from typing import List, Optional, Tuple
-
 from scapy.all import RadioTap, Dot11, Dot11Elt, EAPOL
 
 RSN_ID = 48
 DS_PARAM_ID = 3
 
 KANALLAR_24 = list(range(1, 14))
-KANALLAR_5 = [36, 40, 44, 48, 52, 56, 60, 64,
-              100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140,
-              149, 153, 157, 161, 165]
-KANAL_FREKANS = {**{k: 2407 + k * 5 for k in KANALLAR_24},
-                 **{k: 5000 + k * 5 for k in KANALLAR_5}}
+KANALLAR_5 = [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 149, 153, 157, 161, 165]
+KANAL_FREKANS = {**{k: 2407 + k * 5 for k in KANALLAR_24}, **{k: 5000 + k * 5 for k in KANALLAR_5}}
 REASON_KODLARI = [7, 3, 1, 2, 4, 15]
 
 AKM_ISIM = {
-    0x000FAC01: "802.1X", 0x000FAC02: "PSK", 0x000FAC03: "FT-802.1X",
-    0x000FAC04: "FT-PSK", 0x000FAC05: "802.1X-SHA256",
-    0x000FAC06: "PSK-SHA256", 0x000FAC08: "SAE", 0x000FAC09: "FT-SAE",
-    0x000FAC12: "OWE",
+    0x000FAC01: "802.1X", 0x000FAC02: "PSK", 0x000FAC03: "FT-802.1X", 0x000FAC04: "FT-PSK",
+    0x000FAC05: "802.1X-SHA256", 0x000FAC06: "PSK-SHA256", 0x000FAC08: "SAE",
+    0x000FAC09: "FT-SAE", 0x000FAC12: "OWE",
 }
 CIPHER_ISIM = {
     0x000FAC00: "Use-Group", 0x000FAC01: "WEP40", 0x000FAC02: "TKIP",
-    0x000FAC04: "CCMP", 0x000FAC05: "WEP104", 0x000FAC08: "GCMP",
-    0x000FAC09: "GCMP-256",
+    0x000FAC04: "CCMP", 0x000FAC05: "WEP104", 0x000FAC08: "GCMP", 0x000FAC09: "GCMP-256",
 }
-
 
 def rastgele_mac():
     return "02:%02x:%02x:%02x:%02x:%02x" % tuple(random.randrange(256) for _ in range(5))
-
 
 def _elt_iter(p):
     elt = p.getlayer(Dot11Elt)
@@ -37,12 +29,10 @@ def _elt_iter(p):
         yield elt
         elt = elt.payload
 
-
 def kanal_bul(p) -> Optional[int]:
     for elt in _elt_iter(p):
         if elt.ID == DS_PARAM_ID and elt.info:
             return int(elt.info[0])
-            
     if p.haslayer(RadioTap) and p[RadioTap].Channel:
         freq = int(p[RadioTap].Channel)
         if freq == 2484:
@@ -53,13 +43,11 @@ def kanal_bul(p) -> Optional[int]:
             return (freq - 5000) // 5
     return None
 
-
 def rssi_bul(p) -> Optional[int]:
     try:
         return int(p[RadioTap].dBm_AntSignal)
     except Exception:
         return None
-
 
 def pmf_durum(p) -> Tuple[bool, bool]:
     for elt in _elt_iter(p):
@@ -71,13 +59,11 @@ def pmf_durum(p) -> Tuple[bool, bool]:
                 pass
     return False, False
 
-
 def ssid_bul(p) -> str:
     try:
         return p[Dot11Elt].info.decode(errors="ignore") or "<gizli>"
     except Exception:
         return "<gizli>"
-
 
 def rsn_analiz(p) -> Tuple[Optional[str], Optional[str], bool]:
     for elt in _elt_iter(p):
@@ -91,8 +77,7 @@ def rsn_analiz(p) -> Tuple[Optional[str], Optional[str], bool]:
             i += 2
             cipher = None
             for _ in range(pc):
-                suite = ((info[i] << 24) | (info[i + 1] << 16) |
-                         (info[i + 2] << 8) | info[i + 3])
+                suite = ((info[i] << 24) | (info[i + 1] << 16) | (info[i + 2] << 8) | info[i + 3])
                 if cipher is None and suite in CIPHER_ISIM:
                     cipher = CIPHER_ISIM[suite]
                 i += 4
@@ -101,8 +86,7 @@ def rsn_analiz(p) -> Tuple[Optional[str], Optional[str], bool]:
             akm = None
             wpa3 = False
             for _ in range(ac):
-                suite = ((info[i] << 24) | (info[i + 1] << 16) |
-                         (info[i + 2] << 8) | info[i + 3])
+                suite = ((info[i] << 24) | (info[i + 1] << 16) | (info[i + 2] << 8) | info[i + 3])
                 name = AKM_ISIM.get(suite)
                 if akm is None and name:
                     akm = name
@@ -113,7 +97,6 @@ def rsn_analiz(p) -> Tuple[Optional[str], Optional[str], bool]:
         except Exception:
             pass
     return None, None, False
-
 
 def rsn_pmkid_listesi(rsn_info) -> List[bytes]:
     out = []
@@ -140,13 +123,11 @@ def rsn_pmkid_listesi(rsn_info) -> List[bytes]:
         pass
     return out
 
-
 def rsn_ie(p) -> Optional[bytes]:
     for elt in _elt_iter(p):
         if elt.ID == RSN_ID and elt.info:
             return bytes(elt.info)
     return None
-
 
 def eapol_key_data(p) -> Optional[bytes]:
     if not p.haslayer(EAPOL):
@@ -163,7 +144,6 @@ def eapol_key_data(p) -> Optional[bytes]:
         return bytes(raw[off:off + kdlen])
     except Exception:
         return None
-
 
 def eapol_mesaj_tipi(p) -> Optional[str]:
     if not p.haslayer(EAPOL):
@@ -188,7 +168,6 @@ def eapol_mesaj_tipi(p) -> Optional[str]:
     except Exception:
         return None
 
-
 def eapol_alanlar(p):
     if not p.haslayer(EAPOL):
         return None
@@ -207,7 +186,6 @@ def eapol_alanlar(p):
         return {"mic": mic, "nonce": nonce, "replay": replay,
                 "eapol": bytes(eapol), "key_info": ki,
                 "key_ack": bool(ki & 0x80), "key_mic": bool(ki & 0x100),
-                "secure": bool(ki & 0x200), "keyver": keyver,
-                "data_len": kdlen}
+                "secure": bool(ki & 0x200), "keyver": keyver, "data_len": kdlen}
     except Exception:
-        return None 
+        return None

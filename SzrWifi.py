@@ -25,7 +25,6 @@ TEMPLATES_DIR = "templates"
 log = logging.getLogger(TOOL_NAME)
 _aktif_ctx = None
 
-
 def banner_yaz():
     if os.path.isfile(BANNER_DOSYA):
         try:
@@ -36,11 +35,9 @@ def banner_yaz():
         except Exception:
             pass
 
-
 def _json_oku(y):
     with open(y, "r", encoding="utf-8") as f:
         return json.load(f)
-
 
 def _json_hedef_coz(a, bssid, kanal=None, ssid=None):
     if not getattr(a, "from_json", None):
@@ -51,7 +48,6 @@ def _json_hedef_coz(a, bssid, kanal=None, ssid=None):
     except Exception as e:
         log.error("[!] JSON: %s", e)
         sys.exit(1)
-
 
 def cli_scan(a):
     ctx = _ctx(a)
@@ -66,18 +62,15 @@ def cli_scan(a):
               ("#", "BSSID", "CH", "SSID", "RSSI", "BAND", "CIPHER", "AKM", "PMF"))
         print("-" * 100)
         for i, ap in enumerate(s.apler.values(), 1):
-            pmf = "zorunlu" if ap.pmf_zorunlu else (
-                "kab." if ap.pmf_kabiliyetli else "-")
+            pmf = "zorunlu" if ap.pmf_zorunlu else ("kab." if ap.pmf_kabiliyetli else "-")
             band = "5G" if ap.kanal in KANALLAR_5 else "2.4"
             akm = "WPA3/SAE" if ap.wpa3 else (ap.akm or "-")
             print("%-3d %-17s %-4s %-24s %-6s %-4s %-6s %-8s %s" %
-                  (i, ap.bssid, str(ap.kanal), ap.ssid[:24],
-                   str(ap.rssi), band, ap.cipher or "-", akm, pmf))
+                  (i, ap.bssid, str(ap.kanal), ap.ssid[:24], str(ap.rssi), band, ap.cipher or "-", akm, pmf))
     if a.output:
         with open(a.output, "w", encoding="utf-8") as f:
             json.dump(s.json_dok(), f, ensure_ascii=False, indent=2)
         log.info("[+] %s", a.output)
-
 
 def cli_deauth(a):
     b, k, _ = _json_hedef_coz(a, a.bssid, a.channel)
@@ -90,7 +83,6 @@ def cli_deauth(a):
         time.sleep(a.count * 0.05 + 0.5)
     except KeyboardInterrupt:
         pass
-
 
 def cli_eapol(a):
     ctx = _ctx(a)
@@ -113,7 +105,6 @@ def cli_eapol(a):
     if a.output and a.output.endswith(".22000"):
         m.save_22000(a.output)
 
-
 def cli_pmkid(a):
     b, k, ss = _json_hedef_coz(a, a.bssid, a.channel, a.ssid)
     ctx = _ctx(a)
@@ -127,7 +118,6 @@ def cli_pmkid(a):
         pass
     if a.output:
         m.save_22000(a.output)
-
 
 def cli_probe(a):
     ctx = _ctx(a)
@@ -143,10 +133,8 @@ def cli_probe(a):
         m.off()
     if a.output:
         with open(a.output, "w", encoding="utf-8") as f:
-            json.dump({mac: sorted(s) for mac, s in m.kayitlar.items()},
-                      f, ensure_ascii=False, indent=2)
-        log.info("[+] %d MAC → %s", len(m.kayitlar), a.output)
-
+            json.dump({mac: sorted(s) for mac, s in m.kayitlar.items()}, f, ensure_ascii=False, indent=2)
+        log.info("[+] %d MAC -> %s", len(m.kayitlar), a.output)
 
 def cli_ids(a):
     ctx = _ctx(a)
@@ -163,11 +151,9 @@ def cli_ids(a):
     finally:
         m.off()
 
-
 def cli_flood(a):
     ctx = _ctx(a)
     ctx.modules["flood"].once(a.count, a.time, a.all_channels)
-
 
 def cli_wps(a):
     ctx = _ctx(a)
@@ -177,7 +163,6 @@ def cli_wps(a):
         time.sleep(a.time + 1)
     except KeyboardInterrupt:
         pass
-
 
 def cli_portal(a):
     ctx = _ctx(a)
@@ -193,13 +178,10 @@ def cli_portal(a):
         if a.creds:
             m.save_creds(a.creds)
 
-
 def _ctx(a, mitm=False):
-    ctx = Context(a.iface, mitm_enabled=mitm,
-                  all_channels=getattr(a, "all_channels", False))
+    ctx = Context(a.iface, mitm_enabled=mitm, all_channels=getattr(a, "all_channels", False))
     ctx.modules = yukle(ctx)
     return ctx
-
 
 HELP = f"""
 Commands:
@@ -222,10 +204,8 @@ Shortcuts:
   wps <bssid> [ch] [sec]
   portal <ssid> <template> [ch]
 
-Modules: scan, probe, eapol, deauth, pmkid, ids, flood, wps, portal,
-         playbook (+ mitm with --mitm)
+Modules: scan, probe, eapol, deauth, pmkid, ids, flood, wps, portal, sticky, playbook (+ mitm)
 """
-
 
 def handle(line, ctx):
     parts = line.split()
@@ -284,12 +264,10 @@ def handle(line, ctx):
             ctx.tui.write("no APs", "warn")
             return
         for i, ap in enumerate(s.apler.values(), 1):
-            pmf = "PMF!" if ap.pmf_zorunlu else (
-                "PMF" if ap.pmf_kabiliyetli else "-")
+            pmf = "PMF!" if ap.pmf_zorunlu else ("PMF" if ap.pmf_kabiliyetli else "-")
             band = "5G" if ap.kanal in KANALLAR_5 else "2.4"
             sec = "WPA3" if ap.wpa3 else (ap.akm or "-")
-            ctx.tui.write(f"  {i:3d}) {ap.bssid} ch={ap.kanal}({band}) "
-                          f"{sec:8s} {pmf:4s} {ap.ssid}", "info")
+            ctx.tui.write(f"  {i:3d}) {ap.bssid} ch={ap.kanal}({band}) {sec:8s} {pmf:4s} {ap.ssid}", "info")
         return
 
     if cmd == "set":
@@ -299,7 +277,7 @@ def handle(line, ctx):
         if args[0] == "channel":
             try:
                 kanal_ayarla(ctx.iface, int(args[1]))
-                ctx.tui.write(f"channel → {args[1]}", "ok")
+                ctx.tui.write(f"channel -> {args[1]}", "ok")
             except Exception as e:
                 ctx.tui.write(f"error: {e}", "err")
         return
@@ -354,7 +332,6 @@ def handle(line, ctx):
             ctx.tui.write("scan active", "warn")
             return
         s.on()
-
         def _stop():
             time.sleep(sec)
             s.off()
@@ -367,7 +344,11 @@ def handle(line, ctx):
             return
         b = args[0]
         c = args[1] if len(args) > 1 else None
-        n = int(args[2]) if len(args) > 2 else 100
+        try:
+            n = int(args[2]) if len(args) > 2 else 100
+        except ValueError:
+            ctx.tui.write("Hata: Sayı bekleniyordu.", "err")
+            return
         ctx.modules["deauth"].once(b, c, n)
         return
 
@@ -377,13 +358,21 @@ def handle(line, ctx):
             return
         b = args[0]
         ss = args[1] if len(args) > 1 else ""
-        n = int(args[2]) if len(args) > 2 else 20
+        try:
+            n = int(args[2]) if len(args) > 2 else 20
+        except ValueError:
+            ctx.tui.write("Hata: Sayı bekleniyordu.", "err")
+            return
         ctx.modules["pmkid"].once(b, ss, n)
         return
 
     if cmd == "flood":
-        n = int(args[0]) if args else 50
-        d = int(args[1]) if len(args) > 1 else 10
+        try:
+            n = int(args[0]) if args else 50
+            d = int(args[1]) if len(args) > 1 else 10
+        except ValueError:
+            ctx.tui.write("Hata: Sayı bekleniyordu.", "err")
+            return
         ctx.modules["flood"].once(n, d, ctx.all_channels)
         return
 
@@ -393,7 +382,11 @@ def handle(line, ctx):
             return
         b = args[0]
         c = args[1] if len(args) > 1 else None
-        d = int(args[2]) if len(args) > 2 else 60
+        try:
+            d = int(args[2]) if len(args) > 2 else 60
+        except ValueError:
+            ctx.tui.write("Hata: Sayı bekleniyordu.", "err")
+            return
         ctx.modules["wps"].once(b, c, d)
         return
 
@@ -401,12 +394,10 @@ def handle(line, ctx):
         if len(args) < 2:
             ctx.tui.write("usage: portal <ssid> <template> [ch]", "warn")
             return
-        ctx.modules["portal"].on(args[0], args[1],
-                                 args[2] if len(args) > 2 else None)
+        ctx.modules["portal"].on(args[0], args[1], args[2] if len(args) > 2 else None)
         return
 
     ctx.tui.write(f"unknown: {cmd} (help)", "err")
-
 
 def repl(ctx):
     while not ctx.should_exit:
@@ -422,7 +413,6 @@ def repl(ctx):
         except Exception as e:
             ctx.tui.write(f"error: {e}", "err")
 
-
 def _sigint(sig, frame):
     global _aktif_ctx
     log.warning("[!] Ctrl+C")
@@ -430,10 +420,8 @@ def _sigint(sig, frame):
         _aktif_ctx.shutdown()
     sys.exit(130)
 
-
 def _argparse():
-    p = argparse.ArgumentParser(prog=TOOL_NAME,
-        description="802.11 pentest aracı (lab)")
+    p = argparse.ArgumentParser(prog=TOOL_NAME, description="802.11 pentest aracı")
     p.add_argument("-i", "--iface", default="wlan0mon")
     p.add_argument("-v", "--verbose", action="count", default=0)
     p.add_argument("-q", "--quiet", action="store_true")
@@ -508,7 +496,6 @@ def _argparse():
 
     return p
 
-
 def main():
     global _aktif_ctx
     p = _argparse()
@@ -518,8 +505,7 @@ def main():
         p.error("--mitm TUI modu içindir; subcommand ile kullanılamaz")
 
     set_quiet(a.quiet)
-    logging.basicConfig(level=logging.DEBUG if a.verbose else logging.INFO,
-                        format="%(message)s")
+    logging.basicConfig(level=logging.DEBUG if a.verbose else logging.INFO, format="%(message)s")
     conf.verb = 0
     signal.signal(signal.SIGINT, _sigint)
     banner_yaz()
@@ -528,8 +514,7 @@ def main():
         log.warning("[!] %s monitor modda değil", a.iface)
 
     if a.mitm:
-        ctx = Context(a.iface, mitm_enabled=True,
-                      all_channels=getattr(a, "all_channels", False))
+        ctx = Context(a.iface, mitm_enabled=True, all_channels=getattr(a, "all_channels", False))
         ctx.modules = yukle(ctx)
         _aktif_ctx = ctx
         try:
@@ -548,7 +533,6 @@ def main():
         a.func(a)
     finally:
         ctx.shutdown()
-
 
 if __name__ == "__main__":
     main()

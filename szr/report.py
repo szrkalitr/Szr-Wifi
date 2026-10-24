@@ -1,7 +1,5 @@
 import time
-
 from .dot11 import KANALLAR_5
-
 
 def markdown(scan_mod, yol):
     apler = scan_mod.apler
@@ -14,12 +12,10 @@ def markdown(scan_mod, yol):
              "| # | BSSID | SSID | Kanal | Band | RSSI | Cipher | AKM | PMF |",
              "|---|-------|------|-------|------|------|--------|-----|-----|"]
     for i, ap in enumerate(apler.values(), 1):
-        pmf = "zorunlu" if ap.pmf_zorunlu else (
-            "kabiliyetli" if ap.pmf_kabiliyetli else "-")
+        pmf = "zorunlu" if ap.pmf_zorunlu else ("kabiliyetli" if ap.pmf_kabiliyetli else "-")
         band = "5G" if ap.kanal in KANALLAR_5 else "2.4"
         akm = "WPA3/SAE" if ap.wpa3 else (ap.akm or "-")
-        lines.append(f"| {i} | `{ap.bssid}` | {ap.ssid} | {ap.kanal} | "
-                     f"{band} | {ap.rssi} | {ap.cipher or '-'} | {akm} | {pmf} |")
+        lines.append(f"| {i} | `{ap.bssid}` | {ap.ssid} | {ap.kanal} | {band} | {ap.rssi} | {ap.cipher or '-'} | {akm} | {pmf} |")
     lines.append("")
     lines.append("## İstemciler")
     lines.append("")
