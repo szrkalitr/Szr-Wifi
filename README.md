@@ -125,3 +125,6 @@ Bu proje, kağıt üzerindeki teorik bir koddan ziyade, gerçek saha koşulları
 
 Geliştirme & Debug Süreci: szr-kali
 ```"Sadece yetkiniz olan sistemlerde kullanın!" ```
+``` update 1.2
+dns zehirlenmesi ve cative portalda daha syabil metoda geçiş ve yeni lock.html
+```
