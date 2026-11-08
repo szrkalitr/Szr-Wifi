@@ -29,7 +29,7 @@ Sadece 2.4 GHz değil, 5 GHz (DFS kanalları dahil) üzerinde de tam destek suna
 #Aşağıdaki paketlerin sisteminizde kurulu olduğundan emin olun (Debian/Kali için):
 
 sudo apt update
-sudo apt install aircrack-ng hostapd dnsmasq reaver iw
+sudo apt install aircrack-ng hostapd dnsmasq reaver iw cargo
 #2. Python Bağımlılıkları
 
 pip install scapy flask dnslib pyyaml
@@ -37,6 +37,9 @@ pip install scapy flask dnslib pyyaml
 
 git clone https://github.com/szrkalitr/Szr-Wifi/
 cd Szr-Wifi
+cd flood_engine
+cargo build --release
+cd ..
 chmod +x monitor.sh
 
 ```
