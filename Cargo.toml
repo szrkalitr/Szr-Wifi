@@ -1,0 +1,17 @@
+[package]
+name = "flood_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pnet = "0.35"
+clap = { version = "4", features = ["derive"] }
+rand = "0.8"
+ctrlc = "3.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
