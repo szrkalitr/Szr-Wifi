@@ -44,7 +44,7 @@ chmod +x monitor.sh
 
 ```
 Aracı kullanmadan önce Wi-Fi kartınızı monitor moda almanız gerekir. Kendi yazdığımız betik, airmon-ng'nin aksine arka plan servislerini tamamen öldürmeden, sadece ilgili arayüzü serbest bırakarak işlem yapar.
-
+!!! eğer rust ile motoru derlemeyi unutursanız aracımız çalışmaz
 İnteraktif Menü:
 ```bash
 sudo ./monitor.sh
@@ -130,4 +130,7 @@ Geliştirme & Debug Süreci: szr-kali
 ```"Sadece yetkiniz olan sistemlerde kullanın!" ```
 ``` update 1.2
 dns zehirlenmesi ve cative portalda daha syabil metoda geçiş ve yeni lock.html
+```
+``` udate 1.3
+rust ile yüksek performanslı flood engine ve flood.pydeki hataların düzeltilmesi
 ```
